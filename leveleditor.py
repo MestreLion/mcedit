@@ -97,6 +97,9 @@ Settings.windowShowCmd = Settings("window showcmd", 1)
 Settings.setWindowPlacement = Settings("SetWindowPlacement", True)
 
 Settings.showHiddenOres = Settings("show hidden ores", False)
+for ore in MCRenderer.hiddableOres:
+    setattr(Settings, "showOre{}".format(ore), Settings("show ore {}".format(ore), True))
+
 Settings.fastLeaves = Settings("fast leaves", True)
 Settings.roughGraphics = Settings("rough graphics", False)
 Settings.showChunkRedraw = Settings("show chunk redraw", True)
@@ -1481,11 +1484,16 @@ class LevelEditor(GLViewport):
             col.append(mceutils.CheckBoxLabel("Ceiling",
                 ref=Settings.showCeiling.propertyRef()))
 
-            col.append(mceutils.CheckBoxLabel("Hidden Ores",
-                ref=Settings.showHiddenOres.propertyRef()))
-
             col.append(mceutils.CheckBoxLabel("Chunk Redraw", fg_color=(0xff, 0x99, 0x99),
                 ref=Settings.showChunkRedraw.propertyRef()))
+
+            col.append(mceutils.CheckBoxLabel("Hidden Ores",
+                ref=Settings.showHiddenOres.propertyRef(),
+                tooltipText="If disabled, overrides all specific ore settings below."))
+
+            for ore in MCRenderer.hiddableOres:
+                col.append(mceutils.CheckBoxLabel(self.level.materials[ore].name.replace(" Ore",""),
+                                                  ref=getattr(Settings, "showOre{}".format(ore)).propertyRef()))
 
             col = Column(col, align="r")
 

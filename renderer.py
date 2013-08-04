@@ -462,11 +462,10 @@ class ChunkCalculator (object):
             mats[b.ID] = materialCount
             materialCount += 1
 
+    # don't show boundaries between dirt,grass,sand,gravel,stone
     hiddenOreMaterials = numpy.arange(pymclevel.materials.id_limit, dtype='uint8')
-    hiddenOreMaterials[2] = 1  # don't show boundaries between dirt,grass,sand,gravel,stone
-    hiddenOreMaterials[3] = 1
-    hiddenOreMaterials[12] = 1
-    hiddenOreMaterials[13] = 1
+    for _hiddenOreMaterialID in [2, 3, 12, 13]:
+        hiddenOreMaterials[_hiddenOreMaterialID] = 1  # 1 == Stone ID
 
     roughMaterials = numpy.ones((pymclevel.materials.id_limit,), dtype='uint8')
     roughMaterials[0] = 0
@@ -2018,6 +2017,8 @@ class MCRenderer(object):
         Settings.roughGraphics.addObserver(self)
         Settings.showHiddenOres.addObserver(self)
         Settings.vertexBufferLimit.addObserver(self)
+        for ore in self.hiddableOres:
+            getattr(Settings, "showOre{}".format(ore)).addObserver(self, callback=lambda x, id=ore: self.showOre(id, x))
 
         Settings.drawEntities.addObserver(self)
         Settings.drawTileEntities.addObserver(self)
@@ -2310,6 +2311,12 @@ class MCRenderer(object):
             self.discardAllChunks()
 
         self._showHiddenOres = bool(val)
+
+    hiddableOres = [7, 16, 15, 21, 73, 14, 56]
+    def showOre(self, ore, show):
+        ChunkCalculator.hiddenOreMaterials[ore] = ore if show else 1
+        if self.showHiddenOres:
+            self.discardAllChunks()
 
     def invalidateChunk(self, cx, cz, layers=None):
         " marks the chunk for regenerating vertex data and display lists "
