@@ -43,31 +43,15 @@ ColorSettings.defaultColors = {}
 
 
 class ColorSetting(config.Setting):
-    def __init__(self, section, name, dtype, default):
-        super(ColorSetting, self).__init__(section, name, dtype, default)
+    def __init__(self, section, name, dtype, dsubtype, default):
+        super(ColorSetting, self).__init__(section, name, dtype, float, default)
         ColorSettings.defaultColors[name] = self
 
-    def set(self, val):
-        values = str(tuple(val))[1:-1]
-        super(ColorSetting, self).set(values)
-
     def get(self):
-        colorValues = super(ColorSetting, self).get()
-        return parseValues(colorValues)
+        values = super(ColorSetting, self).get()
+        return (min(max(x, 0.0), 1.0) for x in values)
 ColorSettings.Setting = ColorSetting
 
-
-def parseValues(colorValues):
-    if colorValues is None:
-        return 1., 1., 1.
-
-    try:
-        values = colorValues.split(",")
-        values = [(min(max(float(x), 0.0), 1.0)) for x in values]
-    except:
-        values = (1.0, 1.0, 1.0)
-
-    return tuple(values)
 
 ColorSettings("white", (1.0, 1.0, 1.0))
 
@@ -84,11 +68,22 @@ ColorSettings("black", (0.0, 0.0, 0.0))
 
 
 def GetSelectionColor(colorWord=None):
+    # TODO: this whole function code is now perhaps equivalent to this,
+    # apart from case-sensitiveness handling:
+    #return ColorSettings.defaultColors.get((colorWord or SelectSettings.color.get()).lower(),
+    #                                       ColorSettings(colorWord.lower(), (1.0, 1.0, 1.0))).get()
+
     if colorWord is None:
         colorWord = SelectSettings.color.get()
 
     colorValues = config.config.get("Selection Colors", colorWord)
-    return parseValues(colorValues)
+    try:
+        values = colorValues.translate(None, '[]()').split(',')
+        values = tuple((min(max(float(x), 0.0), 1.0)) for x in values)
+    except:
+        values = (1.0, 1.0, 1.0)
+
+    return values
 
 
 class SelectionToolOptions(ToolOptions):
@@ -118,8 +113,7 @@ class SelectionToolOptions(ToolOptions):
                 choice = self.colorPopupButton.selectedChoice
                 values = GetSelectionColor(choice)
                 values = values[:i] + (val / 255.0,) + values[i + 1:]
-                setting = str(values)[1:-1]
-                config.config.set("Selection Colors", choice, setting)
+                config.config.set("Selection Colors", choice, str(values))
                 self.colorChanged()
 
             return _set
