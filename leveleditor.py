@@ -97,7 +97,21 @@ Settings.windowShowCmd = Settings("window showcmd", 1)
 Settings.setWindowPlacement = Settings("SetWindowPlacement", True)
 
 Settings.showHiddenOres = Settings("show hidden ores", False)
-for ore in MCRenderer.hiddableOres:
+# Quick Reference:
+#    7  Bedrock
+#    9  Still_Water
+#   11  Still_Lava
+#   14  Gold_Ore
+#   15  Iron_Ore
+#   16  Coal_Ore
+#   21  Lapis_Lazuli_Ore
+#   24  Sandstone
+#   49  Obsidian
+#   56  Diamond_Ore
+#   73  Redstone_Ore
+#  129  Emerald_Ore
+Settings.hiddableOres = Settings("hiddable ores", [7, 16, 15, 21, 73, 14, 56])
+for ore in Settings.hiddableOres.get():
     setattr(Settings, "showOre{}".format(ore), Settings("show ore {}".format(ore), True))
 
 Settings.fastLeaves = Settings("fast leaves", True)
@@ -1491,7 +1505,7 @@ class LevelEditor(GLViewport):
                 ref=Settings.showHiddenOres.propertyRef(),
                 tooltipText="If disabled, overrides all specific ore settings below."))
 
-            for ore in MCRenderer.hiddableOres:
+            for ore in Settings.hiddableOres.get():
                 col.append(mceutils.CheckBoxLabel(self.level.materials[ore].name.replace(" Ore",""),
                                                   ref=getattr(Settings, "showOre{}".format(ore)).propertyRef()))
 

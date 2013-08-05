@@ -317,8 +317,9 @@ class ChunkCalculator (object):
 
             # del xArray, zArray, yArray
         self.nullVertices = numpy.zeros((0,) * len(self.precomputedVertices[0].shape), dtype=self.precomputedVertices[0].dtype)
-        from leveleditor import Settings
 
+        import leveleditor
+        Settings = leveleditor.Settings
         Settings.fastLeaves.addObserver(self)
         Settings.roughGraphics.addObserver(self)
 
@@ -2017,7 +2018,7 @@ class MCRenderer(object):
         Settings.roughGraphics.addObserver(self)
         Settings.showHiddenOres.addObserver(self)
         Settings.vertexBufferLimit.addObserver(self)
-        for ore in self.hiddableOres:
+        for ore in Settings.hiddableOres.get():
             getattr(Settings, "showOre{}".format(ore)).addObserver(self, callback=lambda x, id=ore: self.showOre(id, x))
 
         Settings.drawEntities.addObserver(self)
@@ -2312,7 +2313,6 @@ class MCRenderer(object):
 
         self._showHiddenOres = bool(val)
 
-    hiddableOres = [7, 16, 15, 21, 73, 14, 56]
     def showOre(self, ore, show):
         ChunkCalculator.hiddenOreMaterials[ore] = ore if show else 1
         if self.showHiddenOres:
